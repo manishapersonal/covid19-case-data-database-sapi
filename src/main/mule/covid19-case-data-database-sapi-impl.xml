@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
+	<db:config name="msSQLDBConfig" doc:name="Database Config" doc:id="7a7ccc44-70b5-4127-9370-896b855a0b71" >
+		<db:mssql-connection host="${covid19CaseDataDatabase.host}" port="${covid19CaseDataDatabase.port}" user="${covid19CaseDataDatabase.user}" password="${covid19CaseDataDatabase.password}" databaseName="${covid19CaseDataDatabase.dbName}" instanceName="${covid19CaseDataDatabase.instance}"/>
+	</db:config>
+	<jms:config
+		name="activeMQJMSConfig"
+		doc:name="JMS Config"
+		doc:id="b2ed22a8-1f75-4a4c-ad0a-2c20413d4fdd">
+		<jms:active-mq-connection username="${covid19CaseDistributionDLQ.username}" password="${covid19CaseDistributionDLQ.password}">
+			<jms:factory-configuration brokerUrl="${covid19CaseDistributionDLQ.brokerUrl}" />
+		</jms:active-mq-connection>
+	</jms:config>
+	<flow name="post-covid19-case-data-database-sapi-flow" doc:id="03da2032-d143-4892-b77f-c609fa98c03c" >
+		<logger level="INFO" doc:name="ENTRY" doc:id="f11b03e8-82c1-4945-8b00-3633999d2712" message="ENTRY: #[flow.name]"/>
+		<try doc:name="Try" doc:id="b1bca211-0634-4a86-b388-edbda3f35278" >
+			<async doc:name="Async" doc:id="f76713bc-53c6-4d80-ab20-e4da05e98499">
+			<ee:transform doc:name="DB Data Format" doc:id="6e23959b-c6bd-4c98-999d-e353c5dcd460" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map ((item,indexOfitem) -> {
+	"dateRep": item.dateRep as Date {format: "yyyy-MM-dd"},
+	"day": item.day as Number,
+	"month": item.month as Number,
+	"year": item.year as Number,
+	"cases": item.cases as Number,
+	"deaths": item.deaths as Number,
+	"countriesAndTerritories": item.countriesAndTerritories,
+	"geoId": item.geoId,
+	"countryTerritoryCode": item.countryTerritoryCode,
+	"popData2019": item.popData2019 as Number,
+	"continentExp": item.continentExp,
+	"cumulative14DaysCasesPer100000": item.cumulative14DaysCasesPer100000 as Number
+})]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<db:bulk-insert doc:name="Insert Covid19 Case Distribution to DB Table covid_patient_data" doc:id="03867653-7e66-4d32-ab9c-848dc24b92ba" config-ref="msSQLDBConfig">
+				<db:sql><![CDATA[INSERT INTO [dbo].[covid_patient_data]
+           ([dateRep]
+           ,[day]
+           ,[month]
+           ,[year]
+           ,[cases]
+           ,[deaths]
+           ,[countriesAndTerritories]
+           ,[geoId]
+           ,[countryTerritoryCode]
+           ,[popData2019]
+           ,[continentExp]
+           ,[cumulative14DaysCasesPer100000])
+     VALUES
+           (:dateRep
+           , :day
+           , :month
+           , :year
+           , :cases
+           , :deaths
+           , :countriesAndTerritories
+           , :geoId
+           , :countryTerritoryCode
+           , :popData2019
+           , :continentExp
+           , :cumulative14DaysCasesPer100000)]]></db:sql>
+			</db:bulk-insert>
+		</async>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="9dc2db85-db8f-427b-b751-97ce516df06f" type="ANY">
+					<logger level="INFO" doc:name="Logger" doc:id="8c4ba117-83b8-4221-9cf9-d6028706e3a6" message="#[payload]"/>
+					<jms:publish doc:name="Publish - covid19CaseDistributionDLQ" doc:id="1aa32580-62f5-4211-b940-93d6407f3ba3" config-ref="activeMQJMSConfig" destination="${covid19CaseDistributionDLQ.name}" sendCorrelationId="ALWAYS" persistentDelivery="true"/>
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<!-- <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+-&#45;&#45;
+{
+  statusCode: "201",
+  message: "Created"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform> -->
+		<logger level="INFO" doc:name="EXIT" doc:id="4b1a7748-ed41-4f13-963f-e1d75b5dab32" message="EXIT: #[flow.name]"/>
+	</flow>
+</mule>
