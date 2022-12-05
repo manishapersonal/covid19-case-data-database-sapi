@@ -21,7 +21,7 @@ covid19CaseDataDatabase:
   port: "1433"
   instance: "LAPTOP-LE4O67B8\\SQLEXPRESS"
   user: "mulesoftuser"
-  password: "Mule@poc2022"
+  //password: "Mule@poc2022"
   dbName: "MuleSoft"
   
 covid19CaseDistributionDLQ:
