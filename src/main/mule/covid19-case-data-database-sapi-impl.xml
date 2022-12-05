@@ -7,16 +7,8 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
 	<db:config name="msSQLDBConfig" doc:name="Database Config" doc:id="7a7ccc44-70b5-4127-9370-896b855a0b71" >
-		<db:mssql-connection host="${covid19CaseDataDatabase.host}" port="${covid19CaseDataDatabase.port}" user="${covid19CaseDataDatabase.user}" password="${covid19CaseDataDatabase.password}" databaseName="${covid19CaseDataDatabase.dbName}" instanceName="${covid19CaseDataDatabase.instance}"/>
+		<db:mssql-connection host="${msSQLDatabase.host}" port="${msSQLDatabase.port}" user="${msSQLDatabase.user}" password="${secure::msSQLDatabase.password}" databaseName="${msSQLDatabase.dbName}" instanceName="${msSQLDatabase.instance}"/>
 	</db:config>
-	<jms:config
-		name="activeMQJMSConfig"
-		doc:name="JMS Config"
-		doc:id="b2ed22a8-1f75-4a4c-ad0a-2c20413d4fdd">
-		<jms:active-mq-connection username="${covid19CaseDistributionDLQ.username}" password="${covid19CaseDistributionDLQ.password}">
-			<jms:factory-configuration brokerUrl="${covid19CaseDistributionDLQ.brokerUrl}" />
-		</jms:active-mq-connection>
-	</jms:config>
 	<flow name="post-covid19-case-data-database-sapi-flow" doc:id="03da2032-d143-4892-b77f-c609fa98c03c" >
 		<logger level="INFO" doc:name="ENTRY" doc:id="f11b03e8-82c1-4945-8b00-3633999d2712" message="ENTRY: #[flow.name]"/>
 		<try doc:name="Try" doc:id="b1bca211-0634-4a86-b388-edbda3f35278" >
@@ -71,12 +63,6 @@ payload map ((item,indexOfitem) -> {
            , :cumulative14DaysCasesPer100000)]]></db:sql>
 			</db:bulk-insert>
 		</async>
-			<error-handler >
-				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="9dc2db85-db8f-427b-b751-97ce516df06f" type="ANY">
-					<logger level="INFO" doc:name="Logger" doc:id="8c4ba117-83b8-4221-9cf9-d6028706e3a6" message="#[payload]"/>
-					<jms:publish doc:name="Publish - covid19CaseDistributionDLQ" doc:id="1aa32580-62f5-4211-b940-93d6407f3ba3" config-ref="activeMQJMSConfig" destination="${covid19CaseDistributionDLQ.name}" sendCorrelationId="ALWAYS" persistentDelivery="true"/>
-				</on-error-continue>
-			</error-handler>
 		</try>
 		<!-- <ee:transform>
             <ee:message>
@@ -90,5 +76,56 @@ output application/json
             </ee:message>
         </ee:transform> -->
 		<logger level="INFO" doc:name="EXIT" doc:id="4b1a7748-ed41-4f13-963f-e1d75b5dab32" message="EXIT: #[flow.name]"/>
+	</flow>
+	
+	<flow name="post-us-counties-covid19-case-data-database-sapi-flow" doc:id="1bc7f672-a37e-4689-8450-29712d7def1c" >
+		<logger level="INFO" doc:name="ENTRY" doc:id="e2be7637-39e8-4c8b-bcd7-a3fae3a5e422" message="ENTRY: #[flow.name]"/>
+		<try doc:name="Try" doc:id="c9624e41-d714-4510-975a-76f81e64c04b" >
+			<async doc:name="Async" doc:id="877f7687-ec5e-41b1-8cc6-4fe816885571">
+			<ee:transform doc:name="DB Data Format" doc:id="5136a6dc-a4f3-47ef-93a4-c3da497a1c80" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map ((item,indexOfitem) -> {
+	"date": item.date as Date {format: "yyyy-MM-dd"},
+	"county": item.county,
+	"state": item.state ,
+	"fips": item.fips as Number,
+	"cases": item.cases as Number,
+	"deaths": item.deaths as Number
+})]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<db:bulk-insert doc:name="Insert US Counties Covid19 Case Data to DB Table us_counties_covid19_data" doc:id="7dfb8942-a2e9-4741-a596-5a937a9b3c92" config-ref="msSQLDBConfig">
+				<db:sql><![CDATA[INSERT INTO [dbo].[us_counties_covid19_data]
+           ([date]
+           ,[county]
+           ,[state]
+           ,[fips]
+           ,[cases]
+           ,[deaths])
+     VALUES
+           (:date
+           , :county
+           , :state
+           , :fips
+           , :cases
+           , :deaths)]]></db:sql>
+			</db:bulk-insert>
+		</async>
+		</try>
+		<!-- <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+-&#45;&#45;
+{
+  statusCode: "201",
+  message: "Created"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform> -->
+		<logger level="INFO" doc:name="EXIT" doc:id="68b84885-d484-42ad-a409-ccf0de8d1a3a" message="EXIT: #[flow.name]"/>
 	</flow>
 </mule>

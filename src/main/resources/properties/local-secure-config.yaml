@@ -3,5 +3,5 @@ tls:
     keyPassword: "![KCyFyi9rvi0/bS4Jqd1XG9SoyjmF9Kcx]" 
     password: "![KCyFyi9rvi0/bS4Jqd1XG9SoyjmF9Kcx]"
     
-covid19CaseDataDatabase:    
+msSQLDatabase:    
   password: "![sxHTyHjyv9LdyqhGzyv15Q==]"
