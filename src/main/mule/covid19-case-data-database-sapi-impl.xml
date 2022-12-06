@@ -7,7 +7,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
 	<db:config name="msSQLDBConfig" doc:name="Database Config" doc:id="7a7ccc44-70b5-4127-9370-896b855a0b71" >
-		<db:mssql-connection host="${msSQLDatabase.host}" port="${msSQLDatabase.port}" user="${msSQLDatabase.user}" password="${secure::msSQLDatabase.password}" databaseName="${msSQLDatabase.dbName}" instanceName="${msSQLDatabase.instance}"/>
+		<db:mssql-connection host="${msSQLDatabase.host}" port="${msSQLDatabase.port}" user="${msSQLDatabase.user}" password="${msSQLDatabase.password}" databaseName="${msSQLDatabase.dbName}" instanceName="${msSQLDatabase.instance}"/>
 	</db:config>
 	<flow name="post-covid19-case-data-database-sapi-flow" doc:id="03da2032-d143-4892-b77f-c609fa98c03c" >
 		<logger level="INFO" doc:name="ENTRY" doc:id="f11b03e8-82c1-4945-8b00-3633999d2712" message="ENTRY: #[flow.name]"/>
