@@ -11,7 +11,7 @@ http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/
 	</db:config>
 	<flow name="post-covid19-case-data-database-sapi-flow" doc:id="03da2032-d143-4892-b77f-c609fa98c03c" >
 		<logger level="INFO" doc:name="ENTRY" doc:id="f11b03e8-82c1-4945-8b00-3633999d2712" message="ENTRY: #[flow.name]"/>
-		<try doc:name="Try" doc:id="b1bca211-0634-4a86-b388-edbda3f35278" >
+		<try doc:name="Try" doc:id="b1bca211-0634-4a86-b388-edbda3f35278" transactionalAction="BEGIN_OR_JOIN">
 			<async doc:name="Async" doc:id="f76713bc-53c6-4d80-ab20-e4da05e98499">
 			<ee:transform doc:name="DB Data Format" doc:id="6e23959b-c6bd-4c98-999d-e353c5dcd460" >
 			<ee:message >
@@ -34,7 +34,7 @@ payload map ((item,indexOfitem) -> {
 })]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-				<db:bulk-insert doc:name="Insert Covid19 Case Distribution to DB Table covid_patient_data" doc:id="03867653-7e66-4d32-ab9c-848dc24b92ba" config-ref="msSQLDBConfig">
+				<db:bulk-insert doc:name="Insert Covid19 Case Distribution to DB Table covid_patient_data" doc:id="03867653-7e66-4d32-ab9c-848dc24b92ba" config-ref="msSQLDBConfig" transactionalAction="ALWAYS_JOIN">
 				<db:sql><![CDATA[INSERT INTO [dbo].[covid_patient_data]
            ([dateRep]
            ,[day]
@@ -80,7 +80,7 @@ output application/json
 	
 	<flow name="post-us-counties-covid19-case-data-database-sapi-flow" doc:id="1bc7f672-a37e-4689-8450-29712d7def1c" >
 		<logger level="INFO" doc:name="ENTRY" doc:id="e2be7637-39e8-4c8b-bcd7-a3fae3a5e422" message="ENTRY: #[flow.name]"/>
-		<try doc:name="Try" doc:id="c9624e41-d714-4510-975a-76f81e64c04b" >
+		<try doc:name="Try" doc:id="c9624e41-d714-4510-975a-76f81e64c04b" transactionalAction="ALWAYS_BEGIN">
 			<async doc:name="Async" doc:id="877f7687-ec5e-41b1-8cc6-4fe816885571">
 			<ee:transform doc:name="DB Data Format" doc:id="5136a6dc-a4f3-47ef-93a4-c3da497a1c80" >
 			<ee:message >
@@ -97,7 +97,7 @@ payload map ((item,indexOfitem) -> {
 })]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-				<db:bulk-insert doc:name="Insert US Counties Covid19 Case Data to DB Table us_counties_covid19_data" doc:id="7dfb8942-a2e9-4741-a596-5a937a9b3c92" config-ref="msSQLDBConfig">
+				<db:bulk-insert doc:name="Insert US Counties Covid19 Case Data to DB Table us_counties_covid19_data" doc:id="7dfb8942-a2e9-4741-a596-5a937a9b3c92" config-ref="msSQLDBConfig" transactionalAction="ALWAYS_JOIN">
 				<db:sql><![CDATA[INSERT INTO [dbo].[us_counties_covid19_data]
            ([date]
            ,[county]

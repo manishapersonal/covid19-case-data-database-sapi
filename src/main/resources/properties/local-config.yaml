@@ -17,7 +17,7 @@ api:
   specification: "resource::${api.groupId}:${api.artifactId}:${api.version}:raml:zip:covid19-case-data-database-sapi.raml"
 
 msSQLDatabase:
-  host: "192.168.8.126" 
+  host: "localhost" 
   port: "1433"
   instance: "LAPTOP-LE4O67B8\\SQLEXPRESS"
   user: "mulesoftuser"
