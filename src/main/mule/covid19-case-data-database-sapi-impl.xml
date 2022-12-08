@@ -63,6 +63,11 @@ payload map ((item,indexOfitem) -> {
            , :cumulative14DaysCasesPer100000)]]></db:sql>
 			</db:bulk-insert>
 		</async>
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="de2bbb87-9a1a-41de-973b-a7ffdfe5abbf" >
+					<logger level="INFO" doc:name="Logger" doc:id="88f0777c-acbc-49f0-9a61-cec13b30e7bf" message="Propogating Error back to PAPI"/>
+				</on-error-propagate>
+			</error-handler>
 		</try>
 		<!-- <ee:transform>
             <ee:message>
@@ -114,6 +119,11 @@ payload map ((item,indexOfitem) -> {
            , :deaths)]]></db:sql>
 			</db:bulk-insert>
 		</async>
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="7872b745-534b-4e08-8c8d-d73cf7719895" >
+					<logger level="INFO" doc:name="Logger" doc:id="58196372-6eb6-4800-9faf-a2fb1336ba47" message="Propogating Error back to PAPI"/>
+				</on-error-propagate>
+			</error-handler>
 		</try>
 		<!-- <ee:transform>
             <ee:message>
