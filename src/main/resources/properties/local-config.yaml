@@ -21,12 +21,10 @@ msSQLDatabase:
   port: "1433"
   instance: "LAPTOP-LE4O67B8\\SQLEXPRESS"
   user: "mulesoftuser"
-  password: "Mule@poc2022"
   dbName: "MuleSoft"
   
 covid19CaseDistributionDLQ:
   username: "admin"
-  password: "admin"
   brokerUrl: "tcp://localhost:61616?jms.prefetchPolicy.queuePrefetch=10"
   name: "Covid19CaseDistributionDLQ"
   

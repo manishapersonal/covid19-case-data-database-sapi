@@ -3,5 +3,8 @@ tls:
     keyPassword: "![KCyFyi9rvi0/bS4Jqd1XG9SoyjmF9Kcx]" 
     password: "![KCyFyi9rvi0/bS4Jqd1XG9SoyjmF9Kcx]"
     
-//msSQLDatabase:    
-  //password: "![sxHTyHjyv9LdyqhGzyv15Q==]"
+msSQLDatabase:    
+  password: "![eyThlC6Hfog3BoJnAplOQg==]"
+  
+covid19CaseDistributionDLQ:
+  password: "![TMS4M6Upz20=]"
